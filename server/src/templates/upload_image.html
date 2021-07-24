@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width-device-width, initial-scaled=1.0">
+    <title>Upload image</title>
+</head>
+<body>
+    <h1>Upload Image</h1>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <label for="lat">LAT</label>
+        <input type="text" name="lat">
+        <label for="lon">LON</label>
+        <input type="text" name="lon">
+        <label for="img">Select image:</label>
+        <input type="file" id="img" name="img" accept="image/*">
+        <input type="submit">
+    </form>
+    {{image_up}}
+</body>
+</head>
+</html>
+
+
+
+
+
+
