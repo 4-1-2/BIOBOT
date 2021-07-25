@@ -1,17 +1,20 @@
 
 from flask import Flask, request, jsonify
 from flask_restful import Resource, Api
-from biobot.model import predict, get_model
 from flask_cors import CORS
 import base64
 from io import BytesIO
 from PIL import Image
+
+from biobot.model import predict, get_model
+from biobot.qa import OpenAIPlayGround
 
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
 
 model = get_model()
+gpt3api = OpenAIPlayGround('.openaikey.txt')
 
 class Diagnosis(Resource):
     def post(self):
@@ -38,8 +41,19 @@ class Diagnosis(Resource):
 
         return { 'plant': res1, 'disease': res2}, 200
 
+
+class ChatBot(Resource):
+    def post(self):
+        data = request.get_json(force=True)
+        new_text = data['question']
+        chat_acumm = data['chat_acumm']
+        response = gpt3api(new_text, chat_acumm)
+        return response, 200
+
+
     
 api.add_resource(Diagnosis, '/diagnosis')
+api.add_resource(ChatBot, '/chatbot')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

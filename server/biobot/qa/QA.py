@@ -4,7 +4,8 @@ import openai
 
 class OpenAIPlayGround:
     def __init__(
-        self, 
+        self,
+        path_credentials,
         temp=0.0, 
         engine='davinci', 
         max_tokens=100, 
@@ -23,7 +24,7 @@ class OpenAIPlayGround:
         self.presence_pen = presence_pen
         self.base_prompt = self._get_base_prompt()
         self.stop = stop
-        self._give_credentials()
+        self._give_credentials(path_credentials)
 
     def __call__(self, comming_text: str, prev_text: str=''):
         comming_text = comming_text.strip()
@@ -59,8 +60,8 @@ class OpenAIPlayGround:
         text_chat = '{}\n\n{}'.format(prev_text, question)
         return self.base_prompt + text_chat
 
-    def _give_credentials(self):
-        with open('../.openaikey.txt', 'r') as fp:
+    def _give_credentials(self, path_credentials):
+        with open(path_credentials, 'r') as fp:
             apikey = fp.readlines()
             apikey = ''.join(apikey).strip()
             openai.api_key = apikey

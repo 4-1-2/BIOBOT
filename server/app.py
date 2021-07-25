@@ -1,3 +1,5 @@
+# TODO: DEPRECATED
+# use rest_app.py
 from cloudant import Cloudant
 from flask import Flask, render_template, request, jsonify
 from ibm_botocore.client import Config
