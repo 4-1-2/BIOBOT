@@ -9,7 +9,7 @@ import json
 import io as libio
 from PIL import Image
 app = Flask(__name__)
-from biobot.model import run as run_cnn
+from biobot.model import predict, get_model
 import base64
 from io import BytesIO
 
@@ -53,6 +53,8 @@ cgsClient = ibm_boto3.client(service_name='s3',
 
 # On IBM Cloud Cloud Foundry, get the port number from the environment variable PORT
 # When running this app on the local machine, default the port to 8000
+model = get_model()
+
 port = int(os.getenv('PORT', 8000))
 
 @app.route('/', methods=['GET', 'POST'])
@@ -92,7 +94,7 @@ def run_diagnosis():
         binary_data = im_file.getvalue() 
         io_image = base64.b64encode(binary_data)
         #io_image = base64.b64encode(image_cropped.read()).decode('utf-8')
-        res1, res2 = run_cnn(io_image)
+        res1, res2 = predict(io_image, model)
         
         return render_template('upload_image.html', image_up=res1+' '+ res2)
     return render_template('upload_image.html')

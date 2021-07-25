@@ -1,5 +1,4 @@
 from .network import PlantDiseaseClassifier
-import os 
 
 # STORAGE IBM
 #!cgsClient = ibm_boto3.client(service_name='s3',
@@ -18,7 +17,7 @@ import os
 #!if not os.path.exists('params/model.pth'):
 #!    download_params()
 
-DEVICE = 'cpu:0'
+
 TEST_PATH = 'dataset/test'
 
 #modules.test_classes_ids()
@@ -28,14 +27,15 @@ TEST_PATH = 'dataset/test'
 
 #print('Label: {:s}, Predicted: {:s}'.format(label, pred))
 
-
-model = PlantDiseaseClassifier(DEVICE)
-
+def get_model():
+    DEVICE = 'cpu:0'
+    model = PlantDiseaseClassifier(DEVICE)
+    return model
 
 ##filename1 = 'dataset/test/Corn_(maize)___Common_rust_/RS_Rust 1567.JPG'
 ##filename2 = 'dataset/test/Corn_(maize)___healthy/0a1a49a8-3a95-415a-b115-4d6d136b980b___R.S_HL 8216 copy.jpg'
 
-def run(img_io):
+def predict(img_io, model):
     #with open(img_io, "rb") as img_file:
     #s1 = base64.b64encode(img_io.read()).decode('utf-8')
     return model.predict_disease(img_io)
