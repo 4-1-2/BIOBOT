@@ -14,7 +14,7 @@ CORS(app)
 api = Api(app)
 
 model = get_model()
-#!gpt3api = OpenAIPlayGround('.openaikey.txt')
+gpt3api = OpenAIPlayGround('.openaikey.txt')
 
 class basic(Resource):
     def post(self):
@@ -49,7 +49,7 @@ class Diagnosis(Resource):
 
         return { 'plant': res1, 'disease': res2}, 200
 
-'''
+
 class ChatBot(Resource):
     def post(self):
         data = request.get_json(force=True)
@@ -57,11 +57,11 @@ class ChatBot(Resource):
         chat_acumm = data['chat_acumm']
         response = gpt3api(new_text, chat_acumm)
         return response, 200
-'''
+
 
 #api.add_resource(basic, '/')
 api.add_resource(Diagnosis, '/diagnosis')
-#$api.add_resource(ChatBot, '/chatbot')
+api.add_resource(ChatBot, '/chatbot')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

@@ -1,0 +1,4 @@
+server/src/model/__pycache__/
+*.openaikey.txt
+*__pycache__*
+*.egg-info*
