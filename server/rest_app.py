@@ -25,6 +25,7 @@ class basic(Resource):
 
 class Diagnosis(Resource):
     def post(self):
+        #import pdb; pdb.set_trace()
         image = request.files['img']
         image_ = Image.open(image)
         new_width, new_height = 256, 256
@@ -41,10 +42,10 @@ class Diagnosis(Resource):
         # -*- coding: utf-8 -*-
         
         image_cropped.save(im_file, format='JPEG') 
-        binary_data = im_file.getvalue() 
+        binary_data = im_file.getvalue()
         io_image = base64.b64encode(binary_data)
         #io_image = base64.b64encode(image_cropped.read()).decode('utf-8')
-        res1, res2 = predict(io_image, model)
+        res1, res2 = predict(model, io_image)
 
         return { 'plant': res1, 'disease': res2}, 200
 
@@ -58,7 +59,7 @@ class ChatBot(Resource):
         return response, 200
 '''
 
-api.add_resource(basic, '/')
+#api.add_resource(basic, '/')
 api.add_resource(Diagnosis, '/diagnosis')
 #$api.add_resource(ChatBot, '/chatbot')
 
