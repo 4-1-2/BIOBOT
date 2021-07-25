@@ -23,25 +23,47 @@ class OpenAIPlayGround:
         self.presence_pen = presence_pen
         self.base_prompt = self._get_base_prompt()
         self.stop = stop
+        self._give_credentials()
 
-    def __call__(self, comming_text: str):
-        query_prompt = self._append_text(comming_text)
+    def __call__(self, comming_text: str, prev_text: str=''):
+        comming_text = comming_text.strip()
+        query_prompt = self._append_text(comming_text, prev_text)
         response = openai.Completion.create(
             engine=self.engine,
             prompt=query_prompt,
-            temperature=self.temp,
+            temperature=self.temperature,
             max_tokens=self.max_tokens,
             top_p=self.top_p,
             frequency_penalty=self.frequency_pen,
             presence_penalty=self.presence_pen,
             stop=["\n\nQ:", "\nA:"]
         )
+        nchoices = len(response['choices'])
+        text = response['choices'][0]['text'].strip() if nchoices > 0 else ''
 
-        return response
+        acumm_text = '{} {}'.format(query_prompt, text)
+        return {
+            'chat_cumm': acumm_text,
+            'answer': text,
+            'nchoices': nchoices
+        }
     
-    def _append_text(self, new_text: str):
-        return ""
+    def _append_text(self, new_text: str, prev_text):
+        searchQ = re.search(r'.*(Q:)(.*)', new_text)
+        if searchQ:
+            question = searchQ.groups()[1].strip()
+        else:
+            question = new_text.strip()
+        question = 'Q: {}\nA:'.format(question)
+        prev_text = prev_text.strip()
+        text_chat = '{}\n\n{}'.format(prev_text, question)
+        return self.base_prompt + text_chat
 
+    def _give_credentials(self):
+        with open('../.openaikey.txt', 'r') as fp:
+            apikey = fp.readlines()
+            apikey = ''.join(apikey).strip()
+            openai.api_key = apikey
 
     def _get_base_prompt(self):
         return \
@@ -74,5 +96,7 @@ A: Not related to agronomy"""
 
 if __name__ == '__main__':
     api = OpenAIPlayGround() # using default parameters
-    response = api(comming_text="Q: Tell me about fungus diseases in plants")
-    print(response)
+    response = api(comming_text="Tell me about fungus diseases in plants")
+    print(response['chat_cumm'])
+    print(response['answer'])
+    print(response['nchoices'])
