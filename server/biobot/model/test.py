@@ -18,7 +18,7 @@ from .network import PlantDiseaseClassifier
 #!    download_params()
 
 
-TEST_PATH = 'dataset/test'
+#TEST_PATH = 'dataset/test'
 
 #modules.test_classes_ids()
 #modules.accuracy_performance(TEST_PATH, DEVICE)
@@ -27,18 +27,8 @@ TEST_PATH = 'dataset/test'
 
 #print('Label: {:s}, Predicted: {:s}'.format(label, pred))
 
-def get_model():
-    DEVICE = 'cpu:0'
-    model = PlantDiseaseClassifier(DEVICE)
-    return model
-
 ##filename1 = 'dataset/test/Corn_(maize)___Common_rust_/RS_Rust 1567.JPG'
 ##filename2 = 'dataset/test/Corn_(maize)___healthy/0a1a49a8-3a95-415a-b115-4d6d136b980b___R.S_HL 8216 copy.jpg'
-
-def predict(img_io, model):
-    #with open(img_io, "rb") as img_file:
-    #s1 = base64.b64encode(img_io.read()).decode('utf-8')
-    return model.predict_disease(img_io)
 
 #with open(filename1, "rb") as img_file:
 #    s1 = base64.b64encode(img_file.read()).decode('utf-8')

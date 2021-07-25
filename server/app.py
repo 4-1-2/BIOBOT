@@ -34,7 +34,12 @@ def cgsWriteImage(client, bucket, file, image):
                             Body = bufImage,
                             Key = file, 
                             ContentType = 'image/jpeg')
-    print("cgsWriteImage: \n\tBucket=%s \n\tFile=%s \n\tArraySize=%d %s RawSize=%d\n" % (bucket, file, image.size, image.shape, bufImage.getbuffer().nbytes))
+    print("""cgsWriteImage: 
+        \n\tBucket=%s 
+        \n\tFile=%s 
+        \n\tArraySize=%d %s 
+        RawSize=%d\n""" % (
+            bucket, file, image.size, image.shape, bufImage.getbuffer().nbytes))
 
 # DB IBM 
 client = Cloudant.iam(
@@ -53,10 +58,15 @@ cgsClient = ibm_boto3.client(service_name='s3',
 
 #!im = numpy.array(pic)
 
-# On IBM Cloud Cloud Foundry, get the port number from the environment variable PORT
-# When running this app on the local machine, default the port to 8000
-model = get_model()
+# On IBM Cloud Cloud Foundry, get the port number from the environment variable 
+# PORT when running this app on the local machine, default the port to 8000
 
+# Create the model:
+#   ResNet9     : classifier 
+#   Input size  : [56 x 256 x 3]
+#   Output size : [38]
+
+model = get_model()
 port = int(os.getenv('PORT', 8000))
 
 @app.route('/', methods=['GET', 'POST'])
@@ -96,9 +106,9 @@ def run_diagnosis():
         binary_data = im_file.getvalue() 
         io_image = base64.b64encode(binary_data)
         #io_image = base64.b64encode(image_cropped.read()).decode('utf-8')
-        res1, res2 = predict(io_image, model)
+        res1, res2 = predict(model, io_image)
         
-        return render_template('upload_image.html', image_up=res1+' '+ res2)
+        return render_template('upload_image.html', image_up= res1 +' - '+ res2)
     return render_template('upload_image.html')
 
 if __name__ == '__main__':
