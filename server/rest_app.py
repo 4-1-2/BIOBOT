@@ -1,5 +1,5 @@
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template, make_response
 from flask_restful import Resource, Api
 from flask_cors import CORS
 import base64
@@ -14,7 +14,14 @@ CORS(app)
 api = Api(app)
 
 model = get_model()
-gpt3api = OpenAIPlayGround('.openaikey.txt')
+#!gpt3api = OpenAIPlayGround('.openaikey.txt')
+
+class basic(Resource):
+    def post(self):
+        name = request.form['name']
+        return make_response(render_template('index.html', t=name))
+    def get(self):
+        return make_response(render_template('index.html'))
 
 class Diagnosis(Resource):
     def post(self):
@@ -41,7 +48,7 @@ class Diagnosis(Resource):
 
         return { 'plant': res1, 'disease': res2}, 200
 
-
+'''
 class ChatBot(Resource):
     def post(self):
         data = request.get_json(force=True)
@@ -49,11 +56,11 @@ class ChatBot(Resource):
         chat_acumm = data['chat_acumm']
         response = gpt3api(new_text, chat_acumm)
         return response, 200
+'''
 
-
-    
+api.add_resource(basic, '/')
 api.add_resource(Diagnosis, '/diagnosis')
-api.add_resource(ChatBot, '/chatbot')
+#$api.add_resource(ChatBot, '/chatbot')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
