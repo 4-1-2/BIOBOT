@@ -26,7 +26,8 @@ def create_network(device):
 
 def load_model(device, load_path):
     model = create_network(device)
-    checkpoint = torch.load(load_path)
+    checkpoint = torch.load(load_model, map_location=torch.device('cpu'))
+    
     model.load_state_dict(checkpoint)
     return model
 

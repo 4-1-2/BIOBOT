@@ -91,7 +91,7 @@ class PlantDiseaseClassifier(nn.Module):
         self.t = transforms.ToTensor()
 
     def load_model(self, load_path):
-        state_dict = torch.load(load_path)
+        state_dict = torch.load(load_path, map_location=torch.device('cpu'))
         self.model.load_state_dict(state_dict)
         self.model.eval()
 
