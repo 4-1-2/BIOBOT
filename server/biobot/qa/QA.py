@@ -28,7 +28,7 @@ class OpenAIPlayGround:
 
     def __call__(self, comming_text: str, prev_text: str=''):
         comming_text = comming_text.strip()
-        query_prompt = self._append_text(comming_text, prev_text)
+        query_prompt, acumm_chat = self._append_text(comming_text, prev_text)
         response = openai.Completion.create(
             engine=self.engine,
             prompt=query_prompt,
@@ -42,9 +42,9 @@ class OpenAIPlayGround:
         nchoices = len(response['choices'])
         text = response['choices'][0]['text'].strip() if nchoices > 0 else ''
 
-        acumm_text = '{} {}'.format(query_prompt, text)
+        acumm_chat = '{} {}'.format(acumm_chat, text)
         return {
-            'chat_cumm': acumm_text,
+            'chat_acumm': acumm_chat,
             'answer': text,
             'nchoices': nchoices
         }
@@ -58,7 +58,7 @@ class OpenAIPlayGround:
         question = 'Q: {}\nA:'.format(question)
         prev_text = prev_text.strip()
         text_chat = '{}\n\n{}'.format(prev_text, question)
-        return self.base_prompt + text_chat
+        return self.base_prompt + text_chat, text_chat
 
     def _give_credentials(self, path_credentials):
         with open(path_credentials, 'r') as fp:
@@ -98,6 +98,6 @@ A: Not related to agronomy"""
 if __name__ == '__main__':
     api = OpenAIPlayGround() # using default parameters
     response = api(comming_text="Tell me about fungus diseases in plants")
-    print(response['chat_cumm'])
+    print(response['chat_acumm'])
     print(response['answer'])
     print(response['nchoices'])
