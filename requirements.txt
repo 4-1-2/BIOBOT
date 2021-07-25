@@ -1,0 +1,6 @@
+openai
+flask>=2.0.1
+Pyrebase
+numpy>=1.19.4
+torch>=1.8.0
+torchvision>=0.9.0
