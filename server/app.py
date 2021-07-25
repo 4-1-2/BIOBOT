@@ -9,7 +9,7 @@ import json
 import io as libio
 from PIL import Image
 app = Flask(__name__)
-from model.test import run as run_cnn
+from biobot.model import run as run_cnn
 import base64
 from io import BytesIO
 
@@ -71,9 +71,8 @@ def basic():
 # Diagnosis
 @app.route('/diagnosis', methods=['GET', 'POST'])
 def run_diagnosis():
-    print('1')
     if request.method == 'POST':
-        print('2')
+        #import pdb; pdb.set_trace()
         image = request.files['img']
         image_ = Image.open(image)
         new_width, new_height = 256, 256

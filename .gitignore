@@ -2,3 +2,6 @@ server/src/model/params/
 server/src/model/__pycache__/
 server/src/model/dataset/
 *.openaikey.txt
+*__pycache__*
+*.pth
+*.egg-info*

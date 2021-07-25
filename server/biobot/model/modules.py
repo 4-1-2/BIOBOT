@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 
 import torchvision.transforms as transforms
 
-import model.network as network
+from biobot.model import network
 
 def ConvBlock(in_channels, out_channels, pool=False):
     layers = [

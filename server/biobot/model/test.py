@@ -1,4 +1,4 @@
-import model.network as network
+from .network import PlantDiseaseClassifier
 import os 
 
 # STORAGE IBM
@@ -29,7 +29,7 @@ TEST_PATH = 'dataset/test'
 #print('Label: {:s}, Predicted: {:s}'.format(label, pred))
 
 
-model = network.PlantDiseaseClassifier(DEVICE)
+model = PlantDiseaseClassifier(DEVICE)
 
 
 ##filename1 = 'dataset/test/Corn_(maize)___Common_rust_/RS_Rust 1567.JPG'

@@ -7,7 +7,7 @@ from PIL import Image
 
 import torchvision.transforms as transforms
 
-import model.modules as modules
+from biobot.model import modules
 
 class ResNet9(nn.Module):
     def __init__(self, in_channels, num_diseases):
