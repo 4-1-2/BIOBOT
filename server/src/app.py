@@ -1,29 +1,19 @@
-# DB 
-from cloudant.client import Cloudant
+from cloudant import Cloudant
+from flask import Flask, render_template, request, jsonify
 from ibm_botocore.client import Config
 import ibm_boto3
-import os 
-import sys
-import types
-import numpy
-# now that the images is in a numpy.ndarray it needs to somehow be written to an object that represents a jpeg image
-# the memory structure to hold that representation of the jpeg is a io.BytesIO object, suiteable for the Body arg of client.put_object
+import numpy as np
+import atexit
+import os
+import json
 import io as libio
 from PIL import Image
-import cv2
+app = Flask(__name__)
+from model.test import run as run_cnn
+import base64
+from io import BytesIO
 
-
-def __iter__(self): return 0
-
-# The following code accesses a file in your IBM Cloud Object Storage. It includes your credentials.
-# You might want to remove those credentials before you share your notebook.
-cgsClient = ibm_boto3.client(service_name='s3',
-    ibm_api_key_id = 'pEiJMOMCgmFyjPjOv0lBap1b8hPe9yOJENJYR1H3ZI7k',
-    ibm_auth_endpoint='https://iam.cloud.ibm.com/identity/token',
-    config=Config(signature_version='oauth'),
-    endpoint_url='https://s3.ap.cloud-object-storage.appdomain.cloud')
-
-
+# Write image STORAGE IBM 
 def cgsWriteImage(client, bucket, file, image):
     n = image.ndim
     if (n==3):
@@ -44,106 +34,69 @@ def cgsWriteImage(client, bucket, file, image):
                             ContentType = 'image/jpeg')
     print("cgsWriteImage: \n\tBucket=%s \n\tFile=%s \n\tArraySize=%d %s RawSize=%d\n" % (bucket, file, image.size, image.shape, bufImage.getbuffer().nbytes))
 
-imgFile = 'ejm.jpg'
-pic = Image.open(imgFile)
-im = numpy.array(pic)
-
-cgsWriteImage(cgsClient, 'bucketbot', imgFile, im)
-
-'''
-
-{
-  "apikey": "53bPmE5u-1nbKfDF8kkj283BZwDeXljs20Q-D5CJut9t",
-  "endpoints": "https://control.cloud-object-storage.cloud.ibm.com/v2/endpoints",
-  "iam_apikey_description": "Auto-generated for key a1b631ad-02c0-4711-83b4-1856445feddc",
-  "iam_apikey_name": "Service credentials-1",
-  "iam_role_crn": "crn:v1:bluemix:public:iam::::serviceRole:Manager",
-  "iam_serviceid_crn": "crn:v1:bluemix:public:iam-identity::a/21bcecb404444b53a002d19d087f0fd4::serviceid:ServiceId-5ea67e91-f851-40cf-9ee3-c790f3e6cfab",
-  "resource_instance_id": "crn:v1:bluemix:public:cloud-object-storage:global:a/21bcecb404444b53a002d19d087f0fd4:9d6b22d4-160a-4174-8f37-3e7c5269a6e6::"
-}
-
-
-# client Storage IBMCLOUD 
-
-def upload_file_cos(local_file_name,key):  
-    cos = ibm_boto3.resource(service_name = 's3',
-        ibm_api_key_id='53bPmE5u-1nbKfDF8kkj283BZwDeXljs20Q-D5CJut9t',
-        ibm_service_instance_id='ServiceId-c1f0b923-ef69-458c-a78a-f78aba73e1b2',
-        #ibm_auth_endpoint='s3.direct.ap.cloud-object-storage.appdomain.cloud',
-        config=Config(signature_version='oauth'),
-        endpoint_url='https://config.cloud-object-storage.cloud.ibm.com'
-    )
-    try:
-        data = open(local_file_name, 'rb')
-        cos.Bucket('my-bucket').put_object(Key=key, Body=data)
-        #cos.upload_file(Filename=local_file_name, Bucket='bucketbiobot',Key=key)
-    except Exception as e:
-        print(Exception, e)
-    else:
-        print(' File Uploaded')
-
-upload_file_cos('ejm.jpg', 'ejm.jpg')
-
-# client DB IBMCLOUD
+# DB IBM 
 client = Cloudant.iam(
     "0543c3c0-716a-4fe4-8deb-bb2fd61dcd8e-bluemix",
     "vQGV09OznRD9YzobsBtUgBjFzyeGBYOwfSrYZxWLGYwu",
     connect=True
 )
-print(client.all_dbs())
-'''
-'''
-import requests as req
+database_bot = client['biobot']
 
-config = {
-    "apiKey": "AIzaSyAmFauSJcVZ6hDCHDe6R7u-udeFnDRsxgM",
-    "authDomain": "agrobot-2477a.firebaseapp.com",
-    "databaseURL": "https://agrobot-2477a-default-rtdb.firebaseio.com",
-    "projectId": "agrobot-2477a",
-    "storageBucket": "agrobot-2477a.appspot.com",
-    "messagingSenderId": "498819222730",
-    "appId": "1:498819222730:web:e5f8985474b9dbae463833",
-    "measurementId": "G-4BSFR4WSL8"
-}
+# STORAGE IBM
+cgsClient = ibm_boto3.client(service_name='s3',
+    ibm_api_key_id = 'pEiJMOMCgmFyjPjOv0lBap1b8hPe9yOJENJYR1H3ZI7k',
+    ibm_auth_endpoint='https://iam.cloud.ibm.com/identity/token',
+    config=Config(signature_version='oauth'),
+    endpoint_url='https://s3.ap.cloud-object-storage.appdomain.cloud')
 
-firebase = pyrebase.initialize_app(config)
+#!im = numpy.array(pic)
 
-api_key = '827b9408e2582bbc7e4ec550027ccb62'
-
-storage_ = firebase.storage()
-db = firebase.database()
-
-app = Flask(__name__)
+# On IBM Cloud Cloud Foundry, get the port number from the environment variable PORT
+# When running this app on the local machine, default the port to 8000
+port = int(os.getenv('PORT', 8000))
 
 @app.route('/', methods=['GET', 'POST'])
 def basic():
     if request.method == 'POST':
         name = request.form['name']
-        db.child("todo").push(name)
-        todo = db.child("todo").get()
-        to = todo.val()
-        return render_template('index.html', t=to.values())
+        partition_key = 'Humans'
+        document_key = 'julia30'
+        database_bot.create_document({
+            '_id': ':'.join((partition_key, document_key)),
+            'name': name
+        })
+        return render_template('index.html', t=name)
     return render_template('index.html')
 
-@app.route('/upload', methods=['GET', 'POST'])
-def upload_image():
+# Diagnosis
+@app.route('/diagnosis', methods=['GET', 'POST'])
+def run_diagnosis():
+    print('1')
     if request.method == 'POST':
+        print('2')
         image = request.files['img']
-        lat = request.form['lat']
-        lon = request.form['lon']
-        #print(image.read())
-        #!storage_.child('plants').put(image)
-        url_weather = 'https://api.openweathermap.org/data/2.5/weather?lat={}&lon={}&appid={}'.format(lat, lon, api_key)
-        res_weather = req.get(url_weather)
-        return render_template('upload_image.html', image_up=res_weather.json())#res_weather)
+        image_ = Image.open(image)
+        new_width, new_height = 256, 256
+        width, height = image_.size   # Get dimensions
+
+        left = (width - new_width)/2
+        top = (height - new_height)/2
+        right = (width + new_width)/2
+        bottom = (height + new_height)/2
+
+        # Crop the center of the image
+        image_cropped = image_.crop((left, top, right, bottom))
+        im_file = BytesIO()
+        # -*- coding: utf-8 -*-
+        
+        image_cropped.save(im_file, format='JPEG') 
+        binary_data = im_file.getvalue() 
+        io_image = base64.b64encode(binary_data)
+        #io_image = base64.b64encode(image_cropped.read()).decode('utf-8')
+        res1, res2 = run_cnn(io_image)
+        
+        return render_template('upload_image.html', image_up=res1+' '+ res2)
     return render_template('upload_image.html')
 
-#@app.route('/diagnosis', methods=['GET','POST'])
-#def diagnosis():
-#    if request.method == 'POST':
-        
-    #if request.method == 'POST':
-    #    name = request.form
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
-'''
+    app.run(host='0.0.0.0', port=port, debug=True)

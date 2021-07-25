@@ -1,0 +1,8 @@
+Flask>=1.0.0
+cloudant==2.13.0
+-f https://download.pytorch.org/whl/torch_stable.html 
+torch==1.8.1+cpu 
+-f https://download.pytorch.org/whl/torch_stable.html
+torchvision==0.10.0+cpu
+ibm-cos-sdk
+openai>=0.8.0

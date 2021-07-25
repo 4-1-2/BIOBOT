@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 
 import torchvision.transforms as transforms
 
-import network
+import model.network as network
 
 def ConvBlock(in_channels, out_channels, pool=False):
     layers = [
