@@ -18,7 +18,6 @@ def get_suggested_question(plant_name: str, disease: str):
             'How can I enrich the soil for cultivation in the long term?',
             'Which are common diseases for {} plants?'.format(plant_name),
             'What do means biological control?',
-            ''
+            'How the climate change affect the agronomy?'
         ]
     return random.choice(questions)
-
