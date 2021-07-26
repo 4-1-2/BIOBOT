@@ -7,7 +7,7 @@ from io import BytesIO
 from PIL import Image
 
 from biobot.model import predict, get_model
-from biobot.qa import OpenAIPlayGround
+from biobot.qa import OpenAIPlayGround, get_suggested_question
 
 app = Flask(__name__)
 CORS(app)
@@ -25,7 +25,6 @@ class basic(Resource):
 
 class Diagnosis(Resource):
     def post(self):
-        #import pdb; pdb.set_trace()
         image = request.files['img']
         image_ = Image.open(image)
         new_width, new_height = 256, 256
@@ -45,9 +44,10 @@ class Diagnosis(Resource):
         binary_data = im_file.getvalue()
         io_image = base64.b64encode(binary_data)
         #io_image = base64.b64encode(image_cropped.read()).decode('utf-8')
-        res1, res2 = predict(model, io_image)
+        plant, disease = predict(model, io_image)
+        suggested_initial_question = get_suggested_question(plant, disease)
 
-        return { 'plant': res1, 'disease': res2}, 200
+        return { 'plant': plant, 'disease': disease, 'suggested_question': suggested_initial_question}, 200
 
 
 class ChatBot(Resource):

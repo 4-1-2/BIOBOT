@@ -41,7 +41,6 @@ class OpenAIPlayGround:
         )
         nchoices = len(response['choices'])
         text = response['choices'][0]['text'].strip() if nchoices > 0 else ''
-
         acumm_chat = '{} {}'.format(acumm_chat, text)
         return {
             'chat_acumm': acumm_chat,
@@ -93,7 +92,11 @@ Q: What are common diseases in humans?
 A: Not related to agronomy
 
 Q: Can you tell me your opinion about the new president?
-A: Not related to agronomy"""
+A: Not related to agronomy
+
+----------------
+
+"""
 
 if __name__ == '__main__':
     api = OpenAIPlayGround() # using default parameters
