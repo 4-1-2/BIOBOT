@@ -1,7 +1,6 @@
 flask-restful
 flask-cors
 Flask
-numpy
 cloudant==2.13.0
 -f https://download.pytorch.org/whl/torch_stable.html 
 torch==1.9.0+cpu 
