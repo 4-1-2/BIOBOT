@@ -1,4 +1,5 @@
 import os
+import time
 from flask import Flask, request, jsonify, render_template, make_response
 from flask_restful import Resource, Api
 from flask_cors import CORS
@@ -7,12 +8,13 @@ from io import BytesIO
 from PIL import Image
 
 from biobot.model import predict, get_model
-from biobot.qa import OpenAIPlayGround
+from biobot.qa import OpenAIPlayGround, get_suggested_question
 
 from cloudant import Cloudant
 import ibm_boto3
 from ibm_botocore.client import Config
 import json
+import numpy as np
 
 app = Flask(__name__)
 CORS(app)
@@ -77,12 +79,30 @@ class basic(Resource):
 
 class Diagnosis(Resource):
     def post(self):
-        #import pdb; pdb.set_trace()
-        image = request.files['img']
-        #io_image = base64.b64encode(image_cropped.read()).decode('utf-8')
-        res1, res2 = predict(model, image)
-        
-        return { 'plant': res1, 'disease': res2}, 200
+
+        data = request.get_json(force=True)
+        image = data['img']
+
+        #io_image = base64.b64encode(image).decode('utf-8')
+        plant, disease = predict(model, image)
+        suggested_initial_question = get_suggested_question(plant, disease)
+
+        try:
+            im = Image.open(BytesIO(base64.b64decode(image)))
+            np_im = np.array(im)
+            cgsWriteImage(cgsClient, bucket, data['img'][:6]+'.jpg', np_im)
+
+            ts = time.time()
+            database_bot.create_document({
+                '_id': str(ts),
+                'plant': plant,
+                'disease': disease,
+                'img': data['img']
+            })
+        except Exception as e:
+            print(e)
+
+        return { 'plant': plant, 'disease': disease, 'suggested_question': suggested_initial_question}, 200
 
 class ChatBot(Resource):
     def post(self):
