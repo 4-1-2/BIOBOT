@@ -3,3 +3,4 @@ server/src/model/dataset/
 *.openaikey.txt
 *__pycache__*
 *.egg-info*
+.credentials.json
