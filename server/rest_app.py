@@ -9,9 +9,14 @@ from PIL import Image
 from biobot.model import predict, get_model
 from biobot.qa import OpenAIPlayGround, get_suggested_question
 
+from cloudant import Cloudant
+import ibm_boto3
+from ibm_botocore.client import Config
+
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
+
 
 model = get_model()
 gpt3api = OpenAIPlayGround('.openaikey.txt')
@@ -25,30 +30,12 @@ class basic(Resource):
 
 class Diagnosis(Resource):
     def post(self):
-        image = request.files['img']
-        image_ = Image.open(image)
-        new_width, new_height = 256, 256
-        width, height = image_.size   # Get dimensions
-
-        left = (width - new_width)/2
-        top = (height - new_height)/2
-        right = (width + new_width)/2
-        bottom = (height + new_height)/2
-
-        # Crop the center of the image
-        image_cropped = image_.crop((left, top, right, bottom))
-        im_file = BytesIO()
-        # -*- coding: utf-8 -*-
-        
-        image_cropped.save(im_file, format='JPEG') 
-        binary_data = im_file.getvalue()
-        io_image = base64.b64encode(binary_data)
-        #io_image = base64.b64encode(image_cropped.read()).decode('utf-8')
-        plant, disease = predict(model, io_image)
+        data = request.get_json(force=True)
+        image = data['img']
+        #io_image = base64.b64encode(image).decode('utf-8')
+        plant, disease = predict(model, image)
         suggested_initial_question = get_suggested_question(plant, disease)
-
         return { 'plant': plant, 'disease': disease, 'suggested_question': suggested_initial_question}, 200
-
 
 class ChatBot(Resource):
     def post(self):
@@ -57,7 +44,6 @@ class ChatBot(Resource):
         chat_acumm = data['chat_acumm']
         response = gpt3api(new_text, chat_acumm)
         return response, 200
-
 
 #api.add_resource(basic, '/')
 api.add_resource(Diagnosis, '/diagnosis')
