@@ -11,16 +11,21 @@ from biobot.model import modules
 
 class ResNet9(nn.Module):
     def __init__(self, in_channels, num_diseases):
+        """
+        Parameters:
+            in_channels: input channels
+            num_diseases: number of classes
+        """
         super().__init__()
         
         self.conv1 = modules.ConvBlock(in_channels, 64)
-        self.conv2 = modules.ConvBlock(64, 128, pool=True) # out_dim : 128 x 64 x 64 
+        self.conv2 = modules.ConvBlock(64, 128, pool=True) 
         self.res1 = nn.Sequential(
             modules.ConvBlock(128, 128), 
             modules.ConvBlock(128, 128))
         
-        self.conv3 = modules.ConvBlock(128, 256, pool=True) # out_dim : 256 x 16 x 16
-        self.conv4 = modules.ConvBlock(256, 512, pool=True) # out_dim : 512 x 4 x 44
+        self.conv3 = modules.ConvBlock(128, 256, pool=True)
+        self.conv4 = modules.ConvBlock(256, 512, pool=True) 
         self.res2 = nn.Sequential(
             modules.ConvBlock(512, 512), 
             modules.ConvBlock(512, 512))
@@ -30,6 +35,14 @@ class ResNet9(nn.Module):
                                        nn.Linear(512, num_diseases))
         
     def forward(self, x):
+        """
+        Returns the output of the network.
+
+        Parameters:
+            x: input tensor (batch of images)
+        Return:
+
+        """
         out = self.conv1(x)
         out = self.conv2(out)
         out = self.res1(out) + out
@@ -41,8 +54,11 @@ class ResNet9(nn.Module):
         
 class PlantDiseaseClassifier(nn.Module):
     def __init__(self, device):
+        """
+        Parameters:
+            device: the device to which the model parameters are sent.
+        """
         super().__init__()
-        
         self.device = device
         self.model = ResNet9(3, 38).to(self.device)
         
@@ -91,16 +107,32 @@ class PlantDiseaseClassifier(nn.Module):
         self.t = transforms.ToTensor()
 
     def load_model(self, load_path):
+        """
+        Parameters:
+            load_path: a string containing the 'state_dict' of the model.
+        """
         state_dict = torch.load(load_path, map_location=torch.device('cpu'))
         self.model.load_state_dict(state_dict)
         self.model.eval()
 
     def decoce_image(self, s):
+        """
+        Return the decoded image.
+
+        Parameters:
+            s: a string representing the encoded image.
+        """
         decoded_bytes = base64.b64decode(s)
         img = Image.open(io.BytesIO(decoded_bytes))
         return img
 
     def split_label(self, label):
+        """
+        Returns a tuple (plant name, disease).
+
+        Parameters:
+            label: a string that denotes the plant and disease.
+        """
         plant, disease = label.split('___')
         
         if disease[::-1].find('_') == 0:
@@ -111,6 +143,12 @@ class PlantDiseaseClassifier(nn.Module):
         return plant, disease
 
     def predict_disease(self, s):
+        """
+        Returns the tuple (plant name, disease) for a given encoded image.
+
+        Parameters:
+            s: predict the disease of a single image.
+        """
         img = self.decoce_image(s)
         img = self.t(img)
 
@@ -120,5 +158,11 @@ class PlantDiseaseClassifier(nn.Module):
         return self.split_label(self.classes[preds[0].item()])
 
     def forward(self, x):
+        """
+        Returns the output of the network (self.model).
+
+        Parameters:
+            x: input tensor (batch of images or a single image)
+        """
         x = self.model(x)
         return x

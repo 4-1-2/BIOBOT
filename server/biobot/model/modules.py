@@ -12,6 +12,14 @@ import torchvision.transforms as transforms
 from biobot.model import network
 
 def ConvBlock(in_channels, out_channels, pool=False):
+    """
+    Convolutional Block: Conv2d + BatchNorm2d + ReLU
+
+    Parameters:
+        in_channels     : input channels
+        out_channels    : output channels 
+        pool            : use pooling operation
+    """
     layers = [
         nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
         nn.BatchNorm2d(out_channels),
@@ -21,10 +29,21 @@ def ConvBlock(in_channels, out_channels, pool=False):
     return nn.Sequential(*layers)
 
 def create_network(device):
+    """
+    Create ResNet9 network
+
+    Parameters:
+        device: the device to which the model parameters are sent.
+    """
     model = network.ResNet9(3, 38).to(device)
     return model
 
 def load_model(device, load_path):
+    """
+    Parameters:
+        device      : the device to which the model parameters are sent.
+        load_path   : a string containing the 'state_dict' of the model.
+    """
     model = create_network(device)
     checkpoint = torch.load(load_model, map_location=torch.device('cpu'))
     
@@ -32,16 +51,30 @@ def load_model(device, load_path):
     return model
 
 def get_db(path):
+    """
+    Parameters: 
+        path: a filename that contains the test dataset.
+    """
     test_db = ImageFolder(path, transform=transforms.ToTensor()) 
     return test_db, test_db.classes
 
 def load_test_db(path):
+    """
+    Parameters:
+        path: a filename that contains the test dataset.
+    """
     test_db, _ = get_db(path)
     test_dl = DataLoader(test_db, 1, num_workers=2, pin_memory=True)
 
     return test_dl, len(test_db)
 
 def eval_accuracy(model, path, device):
+    """
+    Parameters:
+        model   : an 'torch.nn.Module' model.
+        path    : a filename that contains the test dataset.
+        device  : the device to which the model parameters are sent.
+    """
     model.eval()
     data_generator, data_size = load_test_db(path)
     acc = []
@@ -66,10 +99,20 @@ def test_classes_ids():
         assert t1 == t2
 
 def accuracy_performance(path, device):
+    """
+    Parameters:
+        path    : the device to which the model parameters are sent.
+        device  : a string containing the 'state_dict' of the model.
+    """
     model = load_model(device, os.path.join('params', 'model.pth'))
     assert eval_accuracy(model, path, device) >= 0.95
 
 def predict_random_image(path, device):
+    """
+    Parameters:
+        path    : the device to which the model parameters are sent.
+        device  : a string containing the 'state_dict' of the model.
+    """
     model = load_model(device, os.path.join('params', 'model.pth'))
     model.eval()
     test_db, classes_id = get_db(path)
